@@ -1,26 +1,52 @@
-import { useState, useEffect } from "react";
-import { css } from "@emotion/react";
-import { Box, Typography } from "@material-ui/core";
-
-export default function FilterBox({ name, onClick }) {
+import { Box, Typography, Button } from "@material-ui/core";
+import { useRecoilState } from "recoil";
+import powerState from "./states/powerState";
+import { useRecoilValue } from "recoil";
+import filtersState from "./states/filtersState";
+export default function FilterBox({ name, onClick, style }) {
   const filterTitle = `Filter by ${name}`;
+  const [powerFliteringValue, setPowerFliteringValue] = useRecoilState(
+    powerState
+  );
+  const selectedFilters = useRecoilValue(filtersState);
+  const powerValues = [11, 22];
   return (
-    <Box
-      width={100}
-      height={100}
-      display="flex"
-      textAlign="center"
-      alignItems="center"
-      justifyContent="center"
-      // css={css`
-      //   color: black;
-      //   background-color: gray;
-      //   border-radius: 4%;
-      // `}
-      my={2}
-      onClick={onClick}
-    >
-      <Typography>{filterTitle}</Typography>
+    <Box>
+      <Box
+        width={100}
+        height={50}
+        display="flex"
+        flexDirection="column"
+        textAlign="center"
+        alignItems="center"
+        justifyContent="center"
+        style={style}
+        my={2}
+        onClick={onClick}
+      >
+        <Typography>{filterTitle}</Typography>
+      </Box>
+      {name === "power" && selectedFilters.find((i) => i === "power") && (
+        <Box
+          display="flex"
+          justifyContent="space-around"
+          alignItems="space-around"
+        >
+          {powerValues.map((value) => {
+            return (
+              <Button
+                style={{ border: "solid 2px" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPowerFliteringValue(value);
+                }}
+              >
+                {value} volt
+              </Button>
+            );
+          })}
+        </Box>
+      )}
     </Box>
   );
 }
