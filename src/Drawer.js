@@ -1,11 +1,10 @@
-import { css } from "@emotion/react";
 import { Box, Typography, Button } from "@material-ui/core";
 import { useState } from "react";
 import FilterBox from "../src/FilterBox";
 import { useRecoilState } from "recoil";
 import filtersState from "./states/filtersState";
 
-export default function MyDrawer({ selectedItem, isMenuOpen }) {
+export default function MyDrawer() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useRecoilState(filtersState);
   const filters = ["power", "voltage", "distance"];
@@ -22,20 +21,14 @@ export default function MyDrawer({ selectedItem, isMenuOpen }) {
         borderRadius: "2%",
         backgroundColor: "white",
       }}
-      p={2}
+      p={3}
     >
-      <Box
-        onClick={() => {
-          setFiltersOpen(!filtersOpen);
-        }}
-      >
-        <Typography variant="h5">Filters</Typography>
-      </Box>
       <Box
         display="flex"
         alignItems="space-around"
         justifyContent="space-around"
         width="100%"
+        mt={2}
       >
         {filters.map((name, index) => {
           return (
@@ -50,35 +43,23 @@ export default function MyDrawer({ selectedItem, isMenuOpen }) {
               }}
               name={name}
               key={index}
-              style={
-                selectedFilters.includes(name)
-                  ? {
-                      backgroundColor: "gray",
-                      borderRadius: "40%",
-                    }
-                  : {
-                      backgroundColor: "gray",
-                      borderRadius: "40%",
-                      opacity: "0.5",
-                    }
-              }
             ></FilterBox>
           );
         })}
       </Box>
-
-      <Button
-        onClick={() => {
-          setSelectedFilters([]);
-        }}
-        disabled={!selectedFilters.length > 0}
-        width="auto"
-        color="primary"
-        variant="contained"
-        margin={2}
-      >
-        Reset
-      </Button>
+      <Box margin={2}>
+        <Button
+          onClick={() => {
+            setSelectedFilters([]);
+          }}
+          disabled={!selectedFilters.length > 0}
+          width="auto"
+          color="primary"
+          variant="contained"
+        >
+          Reset
+        </Button>
+      </Box>
     </Box>
   );
 }

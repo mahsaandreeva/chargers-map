@@ -2,38 +2,22 @@ import "./App.css";
 import { Map, GoogleApiWrapper, Marker } from "google-maps-react";
 import { useState, useEffect } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
-import { css } from "@emotion/react";
 import { Box, Button, SwipeableDrawer } from "@material-ui/core";
 import { useRecoilValue } from "recoil";
 import filtersState from "./states/filtersState";
-import { useRecoilState } from "recoil";
+import voltageState from "./states/voltageState";
 import powerState from "./states/powerState";
 import MyDrawer from "./Drawer";
 import InfoDrawer from "./InfoDrawer";
+import useData from "./hooks/useData";
 function App({ google }) {
-  const [isError, setIsError] = useState(null);
-  const [data, setData] = useState(null);
+  const data = useData();
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const [infoIsOpen, setInfoIsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const selectedFilters = useRecoilValue(filtersState);
-  const [powerFliteringValue, setPowerFliteringValue] = useRecoilState(
-    powerState
-  );
-  useEffect(() => {
-    fetch("https://api.mocki.io/v1/51ba4fc2")
-      .then((r) => r.json())
-      .then((r) => {
-        if (r.error) {
-          setIsError(true);
-        } else {
-          setData(r);
-        }
-      })
-      .catch(() => {
-        setIsError(true);
-      });
-  }, []);
+  const voltageFilteringValue = useRecoilValue(voltageState);
+  const powerFliteringValue = useRecoilValue(powerState);
 
   if (!data) {
     return (
@@ -45,35 +29,48 @@ function App({ google }) {
         height="100%"
         position="absolute"
       >
-        <ClipLoader color="black" loading size={100} margin="auto" />
+        <ClipLoader color="blue" loading size={100} margin="auto" />
       </Box>
     );
   }
-  if (isError) {
+  if (data.error) {
     return "something went wrong";
   }
 
   const selectedItem = data.find((i) => i.ID === selectedId);
 
-  const voltageFilter = (item) =>
-    selectedFilters.find((i) => i === "voltage")
-      ? item.Connections.filter((c) => c.Voltage === 400).length > 0
+  const arrayIsNotEmpty = (arr) => arr.length > 0;
+
+  const filtersCollection = [
+    {
+      name: "power",
+      value: powerFliteringValue,
+      function: (item, value) =>
+        arrayIsNotEmpty(item.Connections.filter((c) => c.PowerKW === value)),
+    },
+    {
+      name: "voltage",
+      value: voltageFilteringValue,
+      function: (item, value) =>
+        arrayIsNotEmpty(item.Connections.filter((c) => c.Voltage === value)),
+    },
+  ];
+
+  const filter = (item, value, filterName, func) =>
+    selectedFilters.find((i) => i === filterName) && value > 0
+      ? func(item, value)
       : true;
-  console.log(data);
-  const connectionIdFilter = (item) =>
-    selectedFilters.find((i) => i === "power")
-      ? item.Connections.filter((c) => c.PowerKW !== powerFliteringValue)
-          .length > 0
-      : true;
+
+  const isEveryTestPassed = (item) =>
+    !filtersCollection
+      .map((f) => filter(item, f.value, f.name, f.function))
+      .find((i) => i === false);
 
   const filteredData =
     selectedFilters.length === 0
       ? data
-      : data.filter((item) => connectionIdFilter(item) && voltageFilter(item));
+      : data.filter((item) => isEveryTestPassed(item));
 
-  const changeInfoState = () => {
-    setInfoIsOpen(!infoIsOpen);
-  };
   return (
     <Box
       display="flex"
@@ -114,27 +111,17 @@ function App({ google }) {
         })}
       </Map>
       <Box
-        css={css`
-          align-items: center;
-          position: absolute;
-          z-index: 1;
-          left: 300px;
-          top: 10px;
-          width: 300px;
-        `}
-        height={40}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        width="100%"
+        zIndex="1"
+        my={1}
       >
         <Button
-          css={css`
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            left: 300px;
-            top: 10px;
-            border-radius: 3%;
-            width: 300px;
-            height: 100%;
-          `}
+          borderRadius="3%"
+          width="100px"
+          height="40px"
           onClick={(e) => {
             e.stopPropagation();
             setMenuIsOpen(!menuIsOpen);
@@ -142,7 +129,7 @@ function App({ google }) {
           color="primary"
           variant="contained"
         >
-          Menu
+          Filters
         </Button>
       </Box>
       <SwipeableDrawer
@@ -164,8 +151,8 @@ function App({ google }) {
       <SwipeableDrawer
         transitionDuration={500}
         open={infoIsOpen}
-        onOpen={changeInfoState}
-        onClose={changeInfoState}
+        onOpen={() => setInfoIsOpen(!infoIsOpen)}
+        onClose={() => setInfoIsOpen(!infoIsOpen)}
         anchor="top"
       >
         <InfoDrawer selectedItem={selectedItem} />

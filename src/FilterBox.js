@@ -1,50 +1,63 @@
-import { Box, Typography, Button } from "@material-ui/core";
-import { useRecoilState } from "recoil";
+import {
+  Box,
+  Typography,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  Radio,
+  Button,
+} from "@material-ui/core";
 import powerState from "./states/powerState";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import filtersState from "./states/filtersState";
-export default function FilterBox({ name, onClick, style }) {
+import voltageState from "./states/voltageState";
+
+export default function FilterBox({ name, onClick }) {
   const filterTitle = `Filter by ${name}`;
-  const [powerFliteringValue, setPowerFliteringValue] = useRecoilState(
-    powerState
-  );
+  const setPowerFliteringValue = useSetRecoilState(powerState);
+  const setVoltageFilteringvalue = useSetRecoilState(voltageState);
   const selectedFilters = useRecoilValue(filtersState);
-  const powerValues = [11, 22];
+  const values =
+    name === "power" ? [11, 22] : name === "voltage" ? [230, 400] : null;
+  const setFilterState = (name, value) => {
+    if (name === "power") {
+      setPowerFliteringValue(value);
+    }
+    if (name === "voltage") {
+      setVoltageFilteringvalue(value);
+    }
+  };
   return (
     <Box>
-      <Box
-        width={100}
-        height={50}
-        display="flex"
-        flexDirection="column"
-        textAlign="center"
-        alignItems="center"
-        justifyContent="center"
-        style={style}
-        my={2}
-        onClick={onClick}
-      >
-        <Typography>{filterTitle}</Typography>
+      <Box>
+        <Button onClick={onClick} variant="outlined">
+          {filterTitle}
+        </Button>
       </Box>
-      {name === "power" && selectedFilters.find((i) => i === "power") && (
+      {selectedFilters.includes(name) && (
         <Box
           display="flex"
+          flexDirection="row"
           justifyContent="space-around"
           alignItems="space-around"
         >
-          {powerValues.map((value) => {
-            return (
-              <Button
-                style={{ border: "solid 2px" }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPowerFliteringValue(value);
-                }}
-              >
-                {value} volt
-              </Button>
-            );
-          })}
+          <FormControl>
+            <RadioGroup>
+              {values?.map((value) => {
+                return (
+                  <FormControlLabel
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilterState(name, value);
+                    }}
+                    value={value}
+                    control={<Radio color="primary" />}
+                    label={value}
+                  ></FormControlLabel>
+                );
+              })}
+            </RadioGroup>
+          </FormControl>
         </Box>
       )}
     </Box>
