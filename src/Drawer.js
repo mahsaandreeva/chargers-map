@@ -9,7 +9,7 @@ export default function MyDrawer() {
       justifyContent="center"
       alignItems="center"
       onClick={(e) => e.stopPropagation()}
-      p={8}
+      p={{ xs: 4, sm: 6, lg: 8 }}
     >
       <Box display="flex" width="100%" justifyContent="space-around" margin={2}>
         {Object.keys(filtersConfiguration).map((name, index) => {
