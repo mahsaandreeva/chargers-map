@@ -1,23 +1,20 @@
 import "./App.css";
 import { Map, GoogleApiWrapper, Marker } from "google-maps-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { Box, Button, SwipeableDrawer } from "@material-ui/core";
 import { useRecoilValue } from "recoil";
-import filtersState from "./states/filtersState";
-import voltageState from "./states/voltageState";
-import powerState from "./states/powerState";
+import filtersStateState from "./states/filtersState";
 import MyDrawer from "./Drawer";
 import InfoDrawer from "./InfoDrawer";
 import useData from "./hooks/useData";
+import filtersConfiguration from "./filtersConfiguration";
 function App({ google }) {
   const data = useData();
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const [infoIsOpen, setInfoIsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const selectedFilters = useRecoilValue(filtersState);
-  const voltageFilteringValue = useRecoilValue(voltageState);
-  const powerFliteringValue = useRecoilValue(powerState);
+  const filtersState = useRecoilValue(filtersStateState);
 
   if (!data) {
     return (
@@ -39,37 +36,15 @@ function App({ google }) {
 
   const selectedItem = data.find((i) => i.ID === selectedId);
 
-  const arrayIsNotEmpty = (arr) => arr.length > 0;
-
-  const filtersCollection = [
-    {
-      name: "power",
-      value: powerFliteringValue,
-      function: (item, value) =>
-        arrayIsNotEmpty(item.Connections.filter((c) => c.PowerKW === value)),
-    },
-    {
-      name: "voltage",
-      value: voltageFilteringValue,
-      function: (item, value) =>
-        arrayIsNotEmpty(item.Connections.filter((c) => c.Voltage === value)),
-    },
-  ];
-
-  const filter = (item, value, filterName, func) =>
-    selectedFilters.find((i) => i === filterName) && value > 0
-      ? func(item, value)
-      : true;
-
   const isEveryTestPassed = (item) =>
-    !filtersCollection
-      .map((f) => filter(item, f.value, f.name, f.function))
-      .find((i) => i === false);
+    Object.keys(filtersState).every((filterKey) =>
+      filtersConfiguration[filterKey].matches(item, filtersState[filterKey])
+    );
 
   const filteredData =
-    selectedFilters.length === 0
-      ? data
-      : data.filter((item) => isEveryTestPassed(item));
+    Object.keys(filtersState).length > 0
+      ? data.filter((item) => isEveryTestPassed(item))
+      : data;
 
   return (
     <Box

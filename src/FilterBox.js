@@ -1,65 +1,58 @@
-import {
-  Box,
-  Typography,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  Radio,
-  Button,
-} from "@material-ui/core";
-import powerState from "./states/powerState";
-import { useRecoilValue, useSetRecoilState } from "recoil";
-import filtersState from "./states/filtersState";
-import voltageState from "./states/voltageState";
+import { Box, Checkbox, Typography } from "@material-ui/core";
+import { useRecoilState } from "recoil";
+import filtersStateState from "./states/filtersState";
+import filtersConfiguration from "./filtersConfiguration";
 
-export default function FilterBox({ name, onClick }) {
-  const filterTitle = `Filter by ${name}`;
-  const setPowerFliteringValue = useSetRecoilState(powerState);
-  const setVoltageFilteringvalue = useSetRecoilState(voltageState);
-  const selectedFilters = useRecoilValue(filtersState);
-  const values =
-    name === "power" ? [11, 22] : name === "voltage" ? [230, 400] : null;
-  const setFilterState = (name, value) => {
-    if (name === "power") {
-      setPowerFliteringValue(value);
-    }
-    if (name === "voltage") {
-      setVoltageFilteringvalue(value);
-    }
-  };
+export default function FilterBox({ filterName }) {
+  const filterTitle = `Filter by ${filterName}`;
+  const [filtersState, setFiltersState] = useRecoilState(filtersStateState);
+  console.log(filtersState);
   return (
-    <Box>
-      <Box>
-        <Button onClick={onClick} variant="outlined">
-          {filterTitle}
-        </Button>
+    <Box
+      display="flex"
+      flexDirection="column"
+      justifyContent="flex-start"
+      alignItems="center"
+    >
+      <Box margin={1}>
+        <Typography variant="h6">{filterTitle}</Typography>
       </Box>
-      {selectedFilters.includes(name) && (
-        <Box
-          display="flex"
-          flexDirection="row"
-          justifyContent="space-around"
-          alignItems="space-around"
-        >
-          <FormControl>
-            <RadioGroup>
-              {values?.map((value) => {
-                return (
-                  <FormControlLabel
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFilterState(name, value);
-                    }}
-                    value={value}
-                    control={<Radio color="primary" />}
-                    label={value}
-                  ></FormControlLabel>
-                );
-              })}
-            </RadioGroup>
-          </FormControl>
-        </Box>
-      )}
+      {filtersConfiguration[filterName].options.map((value) => {
+        const values = filtersState[filterName];
+        const { ...clone } = filtersState;
+        values?.length === 1 && delete clone[filterName];
+        return (
+          <Box display="flex">
+            <Checkbox
+              color="primary"
+              onChange={() => {
+                filtersState.hasOwnProperty([filterName])
+                  ? values.includes(value)
+                    ? values?.length === 1
+                      ? setFiltersState(clone)
+                      : setFiltersState({
+                          ...filtersState,
+                          [filterName]: [...values.filter((i) => i !== value)],
+                        })
+                    : setFiltersState({
+                        ...filtersState,
+                        [filterName]: [...values, value],
+                      })
+                  : setFiltersState({
+                      ...filtersState,
+                      [filterName]: [value],
+                    });
+              }}
+              label={value}
+              value={value}
+              checked={values?.includes(value)}
+            />
+            <Box display="flex" alignItems="center" mr={1}>
+              {value} {filtersConfiguration[filterName].unit}
+            </Box>
+          </Box>
+        );
+      })}
     </Box>
   );
 }

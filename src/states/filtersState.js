@@ -1,8 +1,7 @@
 import { atom } from "recoil";
 
-const filtersState = atom({
+const filtersStateState = atom({
   key: "filtersState",
-  default: [],
+  default: {},
 });
-
-export default filtersState;
+export default filtersStateState;

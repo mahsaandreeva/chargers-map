@@ -1,64 +1,20 @@
-import { Box, Typography, Button } from "@material-ui/core";
-import { useState } from "react";
+import { Box } from "@material-ui/core";
 import FilterBox from "../src/FilterBox";
-import { useRecoilState } from "recoil";
-import filtersState from "./states/filtersState";
-
+import filtersConfiguration from "./filtersConfiguration";
 export default function MyDrawer() {
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useRecoilState(filtersState);
-  const filters = ["power", "voltage", "distance"];
-  console.log(selectedFilters);
   return (
     <Box
       display="flex"
-      alignItems="center"
-      justifyContent="flex-start"
       flexDirection="column"
-      style={{
-        bottom: "100px",
-        top: "100px",
-        borderRadius: "2%",
-        backgroundColor: "white",
-      }}
-      p={3}
+      justifyContent="center"
+      alignItems="center"
+      onClick={(e) => e.stopPropagation()}
+      p={8}
     >
-      <Box
-        display="flex"
-        alignItems="space-around"
-        justifyContent="space-around"
-        width="100%"
-        mt={2}
-      >
-        {filters.map((name, index) => {
-          return (
-            <FilterBox
-              onClick={(e) => {
-                !selectedFilters.includes(name)
-                  ? setSelectedFilters([name, ...selectedFilters])
-                  : setSelectedFilters([
-                      ...selectedFilters.filter((item) => item !== name),
-                    ]);
-                e.stopPropagation();
-              }}
-              name={name}
-              key={index}
-            ></FilterBox>
-          );
+      <Box display="flex" width="100%" justifyContent="space-around" margin={2}>
+        {Object.keys(filtersConfiguration).map((name, index) => {
+          return <FilterBox filterName={name} key={index} />;
         })}
-      </Box>
-      <Box margin={2}>
-        <Button
-          onClick={() => {
-            setSelectedFilters([]);
-          }}
-          disabled={!selectedFilters.length > 0}
-          width="auto"
-          color="primary"
-          variant="contained"
-        >
-          Reset
-        </Button>
       </Box>
     </Box>
   );
