@@ -26,7 +26,7 @@ function App({ google }) {
         height="100%"
         position="absolute"
       >
-        <ClipLoader color="blue" loading size={100} margin="auto" />
+        <ClipLoader color="blue" loading size={150} margin="auto" />
       </Box>
     );
   }
@@ -89,13 +89,15 @@ function App({ google }) {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        width="100%"
+        width={168}
         zIndex="1"
-        my={1}
+        position="absolute"
+        top="50px"
+        margin="10px"
       >
         <Button
           borderRadius="3%"
-          width="100px"
+          fullWidth
           height="40px"
           onClick={(e) => {
             e.stopPropagation();
