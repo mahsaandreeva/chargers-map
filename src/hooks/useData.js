@@ -1,22 +1,26 @@
 import { useState, useEffect } from "react";
 
 export default function useData() {
-  const [isError, setIsError] = useState(null);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
   useEffect(() => {
     fetch("https://api.mocki.io/v1/51ba4fc2")
-      .then((r) => r.json())
       .then((r) => {
-        if (r.error) {
-          setIsError(true);
-        } else {
-          setData(r);
+        if (!r.ok) {
+          throw new Error("invalid response");
         }
+        return r.json();
       })
-      .catch(() => {
-        setIsError(true);
+      .then((r) => {
+        setData(r);
+      })
+      .catch((e) => {
+        setError(e);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
-
-  return data;
+  return { data, error, isLoading };
 }

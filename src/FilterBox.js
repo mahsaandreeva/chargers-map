@@ -1,4 +1,4 @@
-import { Box, Checkbox, Typography } from "@material-ui/core";
+import { Box, Checkbox, FormControlLabel, Typography } from "@material-ui/core";
 import { useRecoilState } from "recoil";
 import filtersStateState from "./states/filtersState";
 import filtersConfiguration from "./filtersConfiguration";
@@ -6,53 +6,36 @@ import filtersConfiguration from "./filtersConfiguration";
 export default function FilterBox({ filterName }) {
   const filterTitle = `Filter by ${filterName}`;
   const [filtersState, setFiltersState] = useRecoilState(filtersStateState);
-  console.log(filtersState);
+  const actualFilter = filtersConfiguration[filterName];
+  const selectedValues = filtersState[filterName];
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      justifyContent="flex-start"
-      alignItems="center"
-    >
-      <Box margin={1}>
+    <Box display="flex" flexDirection="column" alignItems="center">
+      <Box margin={1} textAlign="center">
         <Typography variant="h6">{filterTitle}</Typography>
       </Box>
-      {filtersConfiguration[filterName].options.map((value) => {
-        const values = filtersState[filterName];
-        const { ...clone } = filtersState;
-        values?.length === 1 && delete clone[filterName];
-        return (
-          <Box display="flex">
-            <Checkbox
-              color="primary"
+      <Box display="flex" flexDirection="column">
+        {actualFilter.options.map((value) => {
+          const checked = selectedValues?.includes(value) || false;
+          return (
+            <FormControlLabel
+              control={<Checkbox color="primary" />}
               onChange={() => {
-                filtersState.hasOwnProperty([filterName])
-                  ? values.includes(value)
-                    ? values?.length === 1
-                      ? setFiltersState(clone)
-                      : setFiltersState({
-                          ...filtersState,
-                          [filterName]: [...values.filter((i) => i !== value)],
-                        })
-                    : setFiltersState({
-                        ...filtersState,
-                        [filterName]: [...values, value],
-                      })
+                selectedValues.includes(value)
+                  ? setFiltersState({
+                      ...filtersState,
+                      [filterName]: selectedValues.filter((i) => i !== value),
+                    })
                   : setFiltersState({
                       ...filtersState,
-                      [filterName]: [value],
+                      [filterName]: [...selectedValues, value],
                     });
               }}
-              label={value}
-              value={value}
-              checked={values?.includes(value)}
+              checked={checked}
+              label={`${value} ${actualFilter.unit}`}
             />
-            <Box display="flex" alignItems="center" mr={1}>
-              {value} {filtersConfiguration[filterName].unit}
-            </Box>
-          </Box>
-        );
-      })}
+          );
+        })}
+      </Box>
     </Box>
   );
 }

@@ -2,21 +2,23 @@ import "./App.css";
 import { Map, GoogleApiWrapper, Marker } from "google-maps-react";
 import { useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
-import { Box, Button, SwipeableDrawer } from "@material-ui/core";
-import { useRecoilValue } from "recoil";
-import filtersStateState from "./states/filtersState";
-import MyDrawer from "./Drawer";
+import { Box } from "@material-ui/core";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import filtersDrawerIsOpenState from "./states/filtersDrawerIsOpenState";
+import infoDrawerIsOpenState from "./states/infoDrawerIsOpenState";
+import FiltersDrawer from "./filtersDrawer";
 import InfoDrawer from "./InfoDrawer";
 import useData from "./hooks/useData";
-import filtersConfiguration from "./filtersConfiguration";
-function App({ google }) {
-  const data = useData();
-  const [menuIsOpen, setMenuIsOpen] = useState(false);
-  const [infoIsOpen, setInfoIsOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const filtersState = useRecoilValue(filtersStateState);
+import useFilteredData from "./hooks/useFiteredData";
+import FiltersButton from "./FiltersButton";
 
-  if (!data) {
+function App({ google }) {
+  const { data, error, isLoading } = useData();
+  const filteredData = useFilteredData();
+  const [selectedId, setSelectedId] = useState(null);
+  const setIsInfoDrawerOpen = useSetRecoilState(infoDrawerIsOpenState);
+
+  if (isLoading) {
     return (
       <Box
         display="flex"
@@ -30,32 +32,14 @@ function App({ google }) {
       </Box>
     );
   }
-  if (data.error) {
+  if (error) {
     return "something went wrong";
   }
 
   const selectedItem = data.find((i) => i.ID === selectedId);
 
-  const isEveryTestPassed = (item) =>
-    Object.keys(filtersState).every((filterKey) =>
-      filtersConfiguration[filterKey].matches(item, filtersState[filterKey])
-    );
-
-  const filteredData =
-    Object.keys(filtersState).length > 0
-      ? data.filter((item) => isEveryTestPassed(item))
-      : data;
-
   return (
-    <Box
-      display="flex"
-      width="100%"
-      height="100%"
-      onClick={() => {
-        setMenuIsOpen(false);
-        setInfoIsOpen(false);
-      }}
-    >
+    <Box display="flex" width="100%" height="100%">
       <Map
         google={google}
         zoom={14}
@@ -77,61 +61,17 @@ function App({ google }) {
             <Marker
               key={index}
               position={{ lat: latitude, lng: longitude }}
-              onClick={(e) => {
-                setInfoIsOpen(true);
+              onClick={() => {
+                setIsInfoDrawerOpen(true);
                 setSelectedId(id);
               }}
             />
           );
         })}
       </Map>
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        width="100%"
-        zIndex="1"
-        my={1}
-      >
-        <Button
-          borderRadius="3%"
-          width="100px"
-          height="40px"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuIsOpen(!menuIsOpen);
-          }}
-          color="primary"
-          variant="contained"
-        >
-          Filters
-        </Button>
-      </Box>
-      <SwipeableDrawer
-        transitionDuration={500}
-        open={menuIsOpen}
-        onClose={() => {
-          setMenuIsOpen(false);
-        }}
-        onOpen={() => {
-          setMenuIsOpen(true);
-        }}
-        anchor="bottom"
-      >
-        <MyDrawer
-          selectedItem={selectedItem}
-          isMenuOpen={menuIsOpen}
-        ></MyDrawer>
-      </SwipeableDrawer>
-      <SwipeableDrawer
-        transitionDuration={500}
-        open={infoIsOpen}
-        onOpen={() => setInfoIsOpen(!infoIsOpen)}
-        onClose={() => setInfoIsOpen(!infoIsOpen)}
-        anchor="top"
-      >
-        <InfoDrawer selectedItem={selectedItem} />
-      </SwipeableDrawer>
+      <FiltersButton />
+      <FiltersDrawer />
+      <InfoDrawer selectedItem={selectedItem} />
     </Box>
   );
 }
